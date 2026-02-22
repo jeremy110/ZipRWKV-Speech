@@ -1,0 +1,5 @@
+{"audio_filepath": "./tests/wavs/en_0000.wav", "duration": 2.37, "source_lang": "en", "target_lang": "en", "asr_text": "Possibly prodigious and terrible.", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/en_0001.wav", "duration": 3.63, "source_lang": "en", "target_lang": "en", "asr_text": "The standard of your bourgeois notions of freedom.", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/en_0002.wav", "duration": 4.78, "source_lang": "en", "target_lang": "en", "asr_text": "The stock of wine in the cellars at Belton Castle was no doubt, very low.", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/en_0003.wav", "duration": 3.51, "source_lang": "en", "target_lang": "en", "asr_text": "So they, to, each other, kept clinging and clung.", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/en_0004.wav", "duration": 4.4, "source_lang": "en", "target_lang": "en", "asr_text": "Certainly doesnt get into as much mischief since he began to go to school, acknowledged Marilla.", "ast_text": ""}

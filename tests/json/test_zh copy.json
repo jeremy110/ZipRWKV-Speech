@@ -1,0 +1,5 @@
+{"audio_filepath": "./tests/wavs/zh_0000.wav", "duration": 5.191, "source_lang": "zh", "target_lang": "zh", "asr_text": "特朗普與土耳其總統雷傑普為塔伊普為埃爾多安通話後發表了聲明。", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0001.wav", "duration": 4.417, "source_lang": "zh", "target_lang": "zh", "asr_text": "特朗普與土耳其總統雷傑普為塔伊普為埃爾多安通話後發表了聲明。", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0002.wav", "duration": 10.335, "source_lang": "zh", "target_lang": "zh", "asr_text": "鄧迪大學的 Pamela Ferguson 教授指出：記者如果公佈嫌疑人的照片等信息的話，似乎確實存在危害性。", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0003.wav", "duration": 9.684, "source_lang": "zh", "target_lang": "zh", "asr_text": "鄧迪大學的 Pamela Ferguson 教授指出：記者如果公佈嫌疑人的照片等信息的話，似乎確實存在危害性。", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0004.wav", "duration": 7.185, "source_lang": "zh", "target_lang": "zh", "asr_text": "鄧迪大學的 Pamela Ferguson 教授指出：記者如果公佈嫌疑人的照片等信息的話，似乎確實存在危害性。", "ast_text": ""}

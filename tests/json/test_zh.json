@@ -1,0 +1,5 @@
+{"audio_filepath": "./tests/wavs/zh_0000.wav", "duration": 5.191, "source_lang": "zh", "target_lang": "zh", "asr_text": "0", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0001.wav", "duration": 4.417, "source_lang": "zh", "target_lang": "zh", "asr_text": "1", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0002.wav", "duration": 10.335, "source_lang": "zh", "target_lang": "zh", "asr_text": "2", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0003.wav", "duration": 9.684, "source_lang": "zh", "target_lang": "zh", "asr_text": "3", "ast_text": ""}
+{"audio_filepath": "./tests/wavs/zh_0004.wav", "duration": 7.185, "source_lang": "zh", "target_lang": "zh", "asr_text": "4", "ast_text": ""}

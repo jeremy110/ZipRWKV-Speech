@@ -1,0 +1,72 @@
+fbank_config: !new:lhotse.FbankConfig
+  num_mel_bins: 80
+
+fbank: !new:lhotse.Fbank
+  config: !ref <fbank_config>
+
+audio_extractor: !new:lhotse.dataset.OnTheFlyFeatures
+  extractor: !ref <fbank>
+  num_workers: 4
+
+perturb_speed: !new:lhotse.dataset.PerturbSpeed
+  factors: [0.9, 1.1]
+  p: 0.6
+
+perturb_volume: !new:lhotse.dataset.PerturbVolume
+  scale_low: 0.7
+  scale_high: 1.25
+  p: 0.3
+
+spec_aug: !new:lhotse.dataset.SpecAugment
+  time_warp_factor: 80
+  num_feature_masks: 2
+  features_mask_size: 27
+  num_frame_masks: 10
+  frames_mask_size: 100
+  max_frames_mask_fraction: 0.15
+  p: 0.9
+
+# noise_cut: !apply:lhotse.CutSet.from_file
+#   path: noise_cuts.jsonl.gz 
+
+# apply_noise: !new:lhotse.dataset.CutMix
+#   cuts: !ref <noise_cut>
+#   p: 0.5
+#   snr: (5, 20)
+  
+
+train_ds: !new:dataset.datamodule.CustomDataset
+  manifest_path: [
+    ./tests/json/test_en.json,
+    ./tests/json/test_zh.json,
+  ] 
+  audio_extractor: !ref <audio_extractor>
+  audio_augmentor:
+    - !ref <perturb_speed>
+    # - !ref <apply_noise>
+    - !ref <perturb_volume>
+  feature_augmentor:
+    - !ref <spec_aug>
+  sample_rate: 16000
+  use_repeat: True
+  max_length: 30
+  weights: [0.3, 0.7]
+
+valid_ds: !new:dataset.datamodule.CustomDataset
+  manifest_path: ./tests/json/test_en.json
+  audio_extractor: !ref <audio_extractor>
+  sample_rate: 16000
+
+
+datamodule: !new:dataset.dataloader_module.DataModule
+  train_ds: !ref <train_ds>
+  valid_ds: !ref <valid_ds>
+  shuffle: true           # for training
+  num_workers: 4
+  train_max_duration: 300 
+  valid_max_duration: 600
+  quadratic_duration: 15
+  max_cuts: 32
+  num_buckets: 20
+  bucket_buffer_size: 20000
+  shuffle_buffer_size: 10000
