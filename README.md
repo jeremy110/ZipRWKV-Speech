@@ -24,11 +24,55 @@ Current progress on code organization and implementation:
     - [x] Implementation of `DynamicBucketingSampler` for dynamic Batch Size adjustment.
     - [x] Integration of `Cutset.mux` for weighted multi-source data mixing.
     - [x] On-the-fly data augmentation (Speed, Volume, Noise, SpecAugment).
-    - [ ] test code and `conf.yaml`.
+    - [x] test dataset code and `conf.yaml`.
+    - [x] noise manifest prepare script.
 - [ ] **Model Architecture**
-    - [ ] Zipformer Encoder integration.
+    - [X] Zipformer Encoder integration and test code.
     - [ ] RWKV7 and PEFT (Parameter-Efficient Fine-Tuning) integration.
 - [ ] **Training Implementation**
     - [ ] PyTorch Lightning Training Module.
 - [ ] **Checkpoints & Evaluation**
     - [ ] Release of pre-trained model weights.
+
+<details>
+<summary><h3> K2 Installation Guide </h3></summary>
+
+## Environment Requirements
+
+- Python 3.10
+- CUDA 12.8
+- PyTorch 2.8
+
+## Installation Steps
+
+### 1. Download K2 Wheel
+
+Download the [K2 wheel](https://k2-fsa.github.io/k2/cuda.html) file that matches your environment configuration:
+
+```bash
+wget https://k2-fsa.github.io/k2/cuda.html
+wget k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+```
+
+### 2. Fix the Downloaded Filename
+
+Sometimes the `+` character in the filename may be converted to `%2B` after download. You need to rename it back to `+`:
+
+```bash
+# If the filename contains %2B, change it to +
+# Original filename: k2-1.24.4.dev20250807%2Bcuda12.8.torch2.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+# New filename: k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+```
+
+### 3. Install K2
+
+Install the wheel package using `uv pip`:
+
+```bash
+uv pip install "k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+```
+</details>
+
+## Zipformer Encoder
+
+This project uses [`AudenAI/auden-encoder-tta-m10`](https://huggingface.co/AudenAI/auden-encoder-tta-m10) as the encoder for Zipformer.

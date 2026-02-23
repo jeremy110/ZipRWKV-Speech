@@ -1,0 +1,29 @@
+encoder_embed: !new:models.zipformer.subsampling.Conv2dSubsampling
+  in_channels: 80
+  out_channels: 192
+  dropout: 0.0
+
+# https://huggingface.co/AudenAI/auden-encoder-tta-m10/blob/main/config.json
+encoder: !new:models.zipformer.zipformer.Zipformer2 
+  output_downsampling_factor: 2
+  downsampling_factor: (1, 2, 4, 8, 4, 2)
+  num_encoder_layers: (2, 2, 4, 5, 4, 2)
+  encoder_dim: (192, 256, 512, 768, 512, 256)
+  encoder_unmasked_dim: (192, 192, 256, 256, 256, 192)
+  query_head_dim: 32
+  pos_head_dim: 4
+  value_head_dim: 12
+  num_heads: (4, 4, 4, 8, 4, 4)
+  feedforward_dim: (576, 768, 1536, 2304, 1536, 768)
+  cnn_module_kernel: (31, 31, 15, 15, 15, 31)
+  pos_dim: 48
+  dropout: null
+  warmup_batches: 4000
+  causal: False
+  chunk_size: (16,32,64,-1)
+  left_context_frames: (64,128,256,-1)
+
+speech_encoder: !new:models.zipformer.model2.ZipformerModel
+  encoder_embed: !ref <encoder_embed>
+  encoder: !ref <encoder>
+  encoder_dim: 256
