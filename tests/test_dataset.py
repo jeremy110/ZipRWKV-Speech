@@ -9,6 +9,7 @@ def test_dataset():
         modules = load_hyperpyyaml(fin)
 
     dataset = modules["train_ds"]
+    tokenizer = modules["tokenizer"]
 
     sampler = DynamicBucketingSampler(
         dataset.cuts_data, 
@@ -30,16 +31,22 @@ def test_dataset():
 
     for i, batch in enumerate(train_dl):
         # print(f"\n--- test Batch {i+1} ---")
-        features, feature_lens, asr_text, ast_texts, languages = batch
+        features, feature_lens, asr_texts, ast_texts, languages = batch
         # print(f"features shape (B, T, F): {features.shape} {feature_lens} {languages}")
-        # print(f"asr_text: {asr_text}")
+        # print(f"asr_texts: {asr_texts}")
+
+        ids = [tokenizer.encode(asr_text) for asr_text in asr_texts]
+        text = [tokenizer.decode(id) for id in ids]
+
+        print(asr_texts, ids, text)
+        assert asr_texts == text
 
         for lang in languages:
             lang_counts[lang] += 1
 
         print(lang_counts)
 
-        if i == 100:
+        if i == 2:
             break
 
     total = sum(lang_counts.values())

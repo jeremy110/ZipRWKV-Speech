@@ -70,3 +70,6 @@ datamodule: !new:dataset.dataloader_module.DataModule
   num_buckets: 20
   bucket_buffer_size: 20000
   shuffle_buffer_size: 10000
+
+tokenizer: !new:tokenizer.rwkv_tokenizer.TRIE_TOKENIZER
+  file_name: ./src/tokenizer/rwkv_vocab_v20230424.txt
