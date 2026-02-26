@@ -1,0 +1,10 @@
+llm_args:
+  n_layer: 12
+  n_embd: 768
+  vocab_size: 65536
+  head_size_a: 64
+  head_size_divisor: 8
+  need_init_tmix: False
+  need_init_cmix: False
+  grad_cp: 0
+  peft_r: 8
