@@ -168,3 +168,4 @@ We borrowed a lot of code from the following excellent projects:
 - [Auden](https://github.com/AudenAI/Auden)
 - [Zipformer_Lightning](https://github.com/ZQuang2202/Zipformer_Lightning)
 - [icefall](https://github.com/k2-fsa/icefall)
+- [RWKV-PEFT](https://github.com/Joluck/RWKV-PEFT)
