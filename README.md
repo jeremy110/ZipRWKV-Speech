@@ -29,6 +29,7 @@ Current progress on code organization and implementation:
 - [X] **Model Architecture**
     - [X] Zipformer Encoder integration and test code.
     - [X] RWKV7 and PEFT (Parameter-Efficient Fine-Tuning) integration.
+    - [X] projector (MLP and rwkv)
 - [ ] **Training Implementation**
     - [ ] PyTorch Lightning Training Module.
 - [ ] **Checkpoints & Evaluation**
@@ -158,6 +159,106 @@ By combining downsampled audio features with carefully formatted text prompts, t
 
 </details>
 
+<details>
+<summary><h3> LLM-Based ASR: Projector Architecture Guide </h3></summary>
+
+## Overview
+
+In LLM-based ASR systems, the **projector** serves as a critical bridge between the audio encoder and the LLM. Its role is to downsampe and transform audio features into the embedding space of the LLM. This guide introduces common projector architectures and practical implementation insights.
+
+## Common Projector Architectures
+
+When designing projectors for LLM-based ASR, three main architectures are commonly used, typically combined with downsampling mechanisms:
+
+### 1. MLP (Multi-Layer Perceptron)
+- Simple fully-connected layers
+- Lightweight and computationally efficient
+- Direct mapping from encoder output to LLM embedding space
+
+### 2. Transformer Encoder
+- Example: [Fun-ASR](https://github.com/FunAudioLLM/Fun-ASR) implementation
+- Adds sequential modeling capacity
+- Can capture temporal dependencies in audio features
+- Slightly higher computational cost than MLP
+
+### 3. Q-Former
+- Cross-attention mechanism for feature alignment
+- Advanced feature interaction between audio and LLM embedding space
+- More complex but potentially better feature alignment
+
+## Practical Implementation: RWKV-ASR Case Study
+
+### Architecture Details
+
+Based on the [RWKV-ASR](https://huggingface.co/yueyulin/rwkv_asr) implementation:
+
+- **Projector**: 2-layer RWKV (simplified from original implementation)
+  - Using 2-layer RWKV proved sufficient for effective feature projection
+  - Maintains consistency with the base LLM architecture
+
+### Training Strategy: Two-Stage Approach
+
+**Stage 1: Frozen Encoder & LLM**
+- Freeze the audio encoder completely
+- Freeze the LLM parameters completely
+- Train only the projector
+- Allows efficient feature space alignment without catastrophic forgetting
+
+### Critical Implementation Detail
+
+**Attention Mask Handling**
+
+A key correction to the original [RWKV-ASR implementation](https://github.com/yynil/RWKVTTS/blob/main/model/llm/rwkv_asr_cuda_whisper.py#L607) is the addition of **attention_mask** during forward pass:
+
+```python
+# Original issue: Missing attention_mask
+# Impact: Causes hallucinations from padding tokens
+
+# Fix: Include attention_mask parameter
+output = projector(features, attention_mask=mask)
+```
+
+**Hallucination Reduction Results**:
+- **Before fix**: ~20% hallucination rate
+- **After fix**: 1-2% hallucination rate (on clean test set)
+- **Note**: Hallucination increases on extremely noisy audio
+
+The attention mask prevents the model from attending to padding positions, which was a major source of spurious token generation.
+
+## Emerging Approach: MoE-Based Projector
+
+### Motivation
+
+[Recent papers](https://github.com/Alittleegg/Eureka-Audio) have introduced **Mixture of Experts (MoE)** mechanisms into projectors:
+
+- **Language-Specific Alignment**: Different languages have different acoustic-to-semantic alignment patterns
+- **Specialized Experts**: Assign different MLP experts for different languages
+- **Routing Mechanism**: Dynamically select appropriate expert based on language identifier
+
+### Advantages
+
+- Better handling of language-specific phonetic-phonemic mappings
+- Improved cross-lingual ASR performance
+- Flexible scaling for new languages without retraining the entire projector
+
+### Implementation Considerations
+
+- Requires explicit language labels during training or let the router choose and adjust via balance loss.
+- Add language-specific routing tokens (e.g., `<|en|>`, `<|zh|>`)
+- Can be combined with standard downsampling strategies
+
+## Summary
+
+The projector in LLM-based ASR is a crucial yet often overlooked component:
+
+1. **Architecture Choice**: MLP, Transformer Encoder, or Q-Former, each with trade-offs in complexity and performance
+2. **Training Efficiency**: Freezing encoder and LLM allows rapid iteration on projector design
+3. **Implementation Details Matter**: Proper attention mask handling can dramatically reduce hallucinations
+4. **Language Diversity**: MoE-based projectors offer a promising direction for multilingual ASR
+
+By carefully designing the projector and addressing implementation details, systems can achieve robust audio-to-LLM embedding alignment while maintaining computational efficiency.
+
+</details>
 
 ## 🙏 Acknowledgements
 We borrowed a lot of code from the following excellent projects:

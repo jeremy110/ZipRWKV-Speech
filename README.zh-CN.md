@@ -31,6 +31,7 @@
 - [X] **Model Architecture**
     - [X] Zipformer Encoder 整合 and test code。
     - [X] RWKV7 以及 peft 整合。
+    - [X] projector (MLP and rwkv)
 - [ ] **Training Implementation**
     - [ ] PyTorch Lightning Training Module。
 - [ ] **Checkpoints & Evaluation**
@@ -82,7 +83,7 @@ uv pip install "k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_
 本項目使用 [`AudenAI/auden-encoder-tta-m10`](https://huggingface.co/AudenAI/auden-encoder-tta-m10)。
 
 <details>
-<summary><h3> LLM-Based ASR：音頻與文本嵌入融合概念 </h3></summary>
+<summary><h3> LLM-Based ASR：音頻與文本 embedding 融合概念 </h3></summary>
 
 ## 核心概念
 
@@ -124,7 +125,7 @@ uv pip install "k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_
 
 ### 概念 3：融合與 LLM 前向傳遞
 
-**嵌入拼接策略**
+** embedding 拼接策略**
 
 整個系統的關鍵是簡單的拼接：
 
@@ -157,6 +158,107 @@ uv pip install "k2-1.24.4.dev20250807+cuda12.8.torch2.8.0-cp310-cp310-manylinux_
 4. **訓練/推理不對稱性**利用了 LLM 固有的自迴歸文本生成能力
 
 通過將下採樣的音頻特徵與精心格式化的文本提示相結合，該系統使 LLM 能夠在沒有複雜架構修改的情況下執行有效的端到端 ASR。
+
+</details>
+
+<details>
+<summary><h3> LLM-Based ASR：投影層架構指南 </h3></summary>
+
+## 概述
+
+在基於 LLM 的 ASR 系統中，**投影層（projector）**是連接音頻編碼器和 LLM 的關鍵橋樑。其作用是下採樣並將音頻特徵轉換到 LLM 的 embedding 空間。本指南介紹了常見的投影層架構和實踐實現的見解。
+
+## 常見的投影層架構
+
+在設計 LLM-based ASR 的投影層時，通常使用三種主要架構，通常結合下採樣機制：
+
+### 1. MLP（多層感知機）
+- 簡單的全連接層
+- 輕量級且計算效率高
+- 從編碼器輸出到 LLM  embedding 空間的直接映射
+
+### 2. Transformer 編碼器
+- 例如：[Fun-ASR](https://github.com/FunAudioLLM/Fun-ASR) 的實現
+- 增加序列建模能力
+- 能夠捕捉音頻特徵中的時間依賴關係
+- 計算成本略高於 MLP
+
+### 3. Q-Former
+- 交叉注意力機制用於特徵對齊
+- 音頻和 LLM  embedding 空間之間的高級特徵交互
+- 更複雜，但可能有更好的特徵對齊
+
+## 實踐案例：RWKV-ASR 案例研究
+
+### 架構細節
+
+基於 [RWKV-ASR](https://huggingface.co/yueyulin/rwkv_asr) 的實現：
+
+- **投影層**：2 層 RWKV（相比原始實現的簡化）
+  - 使用 2 層 RWKV 足以進行有效的特徵投影
+  - 與基礎 LLM 架構保持一致
+
+### 訓練策略：兩階段方法
+
+**第一階段：凍結編碼器和 LLM**
+- 完全凍結音頻編碼器
+- 完全凍結 LLM 參數
+- 僅訓練投影層
+- 允許在不遺忘的情況下進行高效的特徵空間對齊
+
+### 關鍵實現細節
+
+**注意力掩碼處理**
+
+對原始 [RWKV-ASR 實現](https://github.com/yynil/RWKVTTS/blob/main/model/llm/rwkv_asr_cuda_whisper.py#L607)的關鍵修正是在前向傳遞中添加 **attention_mask**：
+
+```python
+# 原始問題：缺少 attention_mask
+# 影響：導致來自填充 tokens 的幻覺
+
+# 修正：包含 attention_mask 參數
+output = projector(features, attention_mask=mask)
+```
+
+**幻覺減少結果**：
+- **修正前**：約 20% 的幻覺率
+- **修正後**：1-2% 的幻覺率（在測試集上）
+- **注意**：在極其嘈雜的音頻上幻覺會增加
+
+注意力掩碼防止模型關注填充位置，這是虛假 tokens 生成的主要來源。
+
+## 新興方法：基於 MoE 的投影層
+
+### 動機
+
+[近期論文](https://github.com/Alittleegg/Eureka-Audio)將 **混合專家（MoE）**機制引入投影層：
+
+- **語言特定對齊**：不同語言有不同的聲學到語義的對齊模式
+- **專家分工**：為不同語言分配不同的 MLP 專家
+- **路由機制**：根據語言標識符動態選擇合適的專家
+
+### 優勢
+
+- 更好地處理語言特定的音素-音位映射
+- 改善跨語言 ASR 性能
+- 靈活地為新語言進行擴展，無需重新訓練整個投影層
+
+### 實現考慮事項
+
+- 訓練期間需要明確的語言標籤或者讓 Router 自己選擇並透過 balance loss 調整
+- 添加語言特定的路由 tokens （例如 `<|en|>`、`<|zh|>`）
+- 可與標準下採樣策略結合使用
+
+## 總結
+
+投影層在 LLM-based ASR 中是一個關鍵但常被忽視的組件：
+
+1. **架構選擇**：MLP、Transformer 編碼器或 Q-Former，各有複雜性和性能的權衡
+2. **訓練效率**：凍結編碼器和 LLM 允許對投影層設計進行快速迭代
+3. **實現細節至關重要**：正確的注意力掩碼處理能夠大幅降低幻覺
+4. **語言多樣性**：基於 MoE 的投影層為多語言 ASR 提供了有前景的方向
+
+通過仔細設計投影層並解決實現細節，系統可以實現穩健的音頻到 LLM  embedding 對齊，同時保持計算效率。
 
 </details>
 
