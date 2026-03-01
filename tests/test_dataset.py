@@ -2,6 +2,8 @@ from hyperpyyaml import load_hyperpyyaml
 from lhotse.dataset import SimpleCutSampler, DynamicBucketingSampler
 from torch.utils.data import DataLoader
 
+from dataset.process_batch import prepare_text_batch
+
 def test_dataset():
 
     config_file = "./tests/yaml/test_dataset.yaml"
@@ -13,7 +15,7 @@ def test_dataset():
 
     sampler = DynamicBucketingSampler(
         dataset.cuts_data, 
-        max_duration = 100.0, 
+        max_duration = 20.0, 
         shuffle_buffer_size=1000,
         num_buckets=20,
         shuffle = True
@@ -34,6 +36,9 @@ def test_dataset():
         features, feature_lens, asr_texts, ast_texts, languages = batch
         # print(f"features shape (B, T, F): {features.shape} {feature_lens} {languages}")
         # print(f"asr_texts: {asr_texts}")
+
+        a = prepare_text_batch(asr_texts, ast_texts, languages, tokenizer, device = "cpu")
+        print(a)
 
         ids = [tokenizer.encode(asr_text) for asr_text in asr_texts]
         text = [tokenizer.decode(id) for id in ids]
